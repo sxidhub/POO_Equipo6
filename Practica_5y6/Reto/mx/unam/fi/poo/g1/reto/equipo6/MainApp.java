@@ -101,10 +101,11 @@ public class MainApp {
 
                 // Evaluar expresión simple (número operador número)
                 String trimmed = expresion.trim();
+                System.out.println("Expresion trimmed: "+trimmed);
                 //Busca el operador y su posición
                 char op = 0;
                 int opPos = -1;
-                for (int i = 0; i < trimmed.length(); i++) {
+                for (int i = 1; i < trimmed.length(); i++) {
                     char c = trimmed.charAt(i);
                     if (c == '+' || c == '-' || c == '*' || c == '/') {
                         op = c;
@@ -112,16 +113,19 @@ public class MainApp {
                         break;
                     }
                 }
-                if (opPos == -1) {
+                System.out.println("Op: "+op);
+                System.out.println("OpPos: "+opPos);
+                if (opPos == -1 || opPos == 0 || opPos == trimmed.length() - 1) {
                     return;
                 }
-
+                
 
                 // Divide la cadena en dos números (sin contar el operador)
                 String numeroIzquierdoStr = trimmed.substring(0, opPos).trim();
                 String numeroDerechoStr = trimmed.substring(opPos + 1).trim();
-                double numeroIzquierdo = safeParsePrecio(numeroIzquierdoStr);
-                double numeroDerecho = safeParsePrecio(numeroDerechoStr);
+                double numeroIzquierdo = Double.parseDouble(numeroIzquierdoStr);
+                double numeroDerecho = Double.parseDouble(numeroDerechoStr);
+                System.out.println(numeroIzquierdo + " " + op + " " + numeroDerecho);
 
 
                 double resultado = 0.0;
@@ -162,6 +166,8 @@ public class MainApp {
      * - Acepta dígitos y un solo punto decimal.
      * - Si es inválido, regresa -1 como bandera.
      */
+
+     //Lo estaba usando pero me daba problemas con los negativos, asi que usé 
     private static double safeParsePrecio(String s) {
         if (s == null) return -1.0;
         String t = s.trim();
