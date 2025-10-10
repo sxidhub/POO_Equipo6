@@ -115,7 +115,11 @@ public class MainApp {
                 }
                 System.out.println("Op: "+op);
                 System.out.println("OpPos: "+opPos);
-                if (opPos == -1 || opPos == 0 || opPos == trimmed.length() - 1) {
+                if (opPos == -1 || opPos == 0) {
+                    return;
+                }
+                if (opPos == trimmed.length() - 1) {
+                    view.getPantalla().setText(expresion.substring(0, expresion.length() - 1));
                     return;
                 }
                 
