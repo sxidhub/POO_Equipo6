@@ -1,3 +1,5 @@
+package mx.unam.fi.poo.g1.reto.equipo6;
+
 public class Tienda {
     public static void main(String[] args) {
         Material libro = new Libro("Wigetta y el báculo dorado", "Willyrex", 2015," Ediciones Martínez Roca");
@@ -11,3 +13,4 @@ public class Tienda {
         dvd.mostrarInformacion();
     }
 }
+
