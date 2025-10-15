@@ -1,3 +1,5 @@
+package mx.unam.fi.poo.g1.reto.equipo6;
+
 public class Libro extends Material {
     private String editorial;
 
@@ -24,3 +26,4 @@ public class Libro extends Material {
     }
     
 }
+
