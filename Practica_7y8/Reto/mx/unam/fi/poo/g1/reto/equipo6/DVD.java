@@ -1,3 +1,5 @@
+package mx.unam.fi.poo.g1.reto.equipo6;
+
 public class DVD extends Material {
     private int duracion; 
 
@@ -23,3 +25,4 @@ public class DVD extends Material {
     }
     
 }
+
