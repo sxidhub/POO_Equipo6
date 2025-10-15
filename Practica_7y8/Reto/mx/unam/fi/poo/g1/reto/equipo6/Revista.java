@@ -1,3 +1,5 @@
+package mx.unam.fi.poo.g1.reto.equipo6;
+
 public class Revista extends Material {
     private String numeroEdicion;
 
@@ -22,3 +24,4 @@ public class Revista extends Material {
         System.out.println("Número de Edición: " + numeroEdicion);
     }
 }
+
