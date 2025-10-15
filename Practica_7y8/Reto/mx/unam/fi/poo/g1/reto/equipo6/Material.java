@@ -1,3 +1,5 @@
+package mx.unam.fi.poo.g1.reto.equipo6;
+
 public class Material {
     private String titulo;
     private String autor;
@@ -34,5 +36,6 @@ public class Material {
         System.out.println("Autor: " + autor);
         System.out.println("Año: " + anio);
     }
+
 
 }
