@@ -21,7 +21,7 @@ public class EmpleadoAsalariado extends Empleado {
 
     
     public double ingresos() {
-        return getSalarioSemanal();
+        return getSalarioSemanal()*4;
     }
     
     @Override
