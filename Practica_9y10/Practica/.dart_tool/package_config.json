@@ -1,0 +1,16 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "taller_equipo6_p910",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    }
+  ],
+  "generator": "pub",
+  "generatorVersion": "3.9.2",
+  "flutterRoot": "file:///C:/Flutter/flutter",
+  "flutterVersion": "3.35.7",
+  "pubCache": "file:///C:/Users/gato2/AppData/Local/Pub/Cache"
+}

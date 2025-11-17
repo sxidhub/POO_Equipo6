@@ -1,0 +1,9 @@
+name: taller_equipo6_p910
+description: Practica 9 y 10 POO.
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+# Aún no tenemos dependencias
+dependencies:

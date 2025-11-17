@@ -1,0 +1,14 @@
+{
+  "roots": [
+    "taller_equipo6_p910"
+  ],
+  "packages": [
+    {
+      "name": "taller_equipo6_p910",
+      "version": "1.0.0",
+      "dependencies": [],
+      "devDependencies": []
+    }
+  ],
+  "configVersion": 1
+}
