@@ -16,29 +16,169 @@ class PokemonApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Batalla Pokémon',
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.red),
-      home: const BattleScreen(),
+      // CAMBIO 1: La pantalla inicial ahora es la Selección
+      home: const PantallaSeleccion(),
     );
   }
 }
 
+// ==========================================
+// NUEVA PANTALLA: SELECCIÓN DE POKÉMON
+// ==========================================
+class PantallaSeleccion extends StatefulWidget {
+  const PantallaSeleccion({super.key});
+
+  @override
+  State<PantallaSeleccion> createState() => _PantallaSeleccionState();
+}
+
+class _PantallaSeleccionState extends State<PantallaSeleccion> {
+  Pokemon? jugador1; // Tu elección
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // 1. Fondo oscuro fuera de la "pantalla del celular"
+      backgroundColor: Colors.grey[900], 
+      
+      appBar: AppBar(
+        title: Text(jugador1 == null ? "1. Elige a tu Compañero" : "2. Elige a tu Rival"),
+        backgroundColor: jugador1 == null ? Colors.blue : Colors.red, 
+        foregroundColor: Colors.white,
+        centerTitle: true,
+      ),
+      
+      // 2. Centramos y limitamos el ancho
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500),
+          decoration: BoxDecoration(
+            color: Colors.white, // Fondo blanco para la lista
+            // Borde y sombra para que parezca una pantalla flotando
+            border: Border.symmetric(vertical: BorderSide(color: Colors.black, width: 4)),
+            boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 20)],
+          ),
+          
+          // 3. Aquí va tu GridView original
+          child: GridView.builder(
+            padding: const EdgeInsets.all(10),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, // 2 columnas
+              childAspectRatio: 0.85, // Ajusté un poco esto para que las cartas no sean tan altas
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
+            itemCount: pokedex.length,
+            itemBuilder: (context, index) {
+              final pokemon = pokedex[index];
+              
+              // Detectamos si este pokemon está seleccionado
+              bool isSelected = (jugador1 == pokemon);
+
+              return GestureDetector(
+                onTap: () {
+                  if (jugador1 == null) {
+                    // PASO 1: Elegir mi pokemon
+                    setState(() {
+                      jugador1 = pokemon;
+                    });
+                  } else {
+                    // PASO 2: Elegir rival e ir a la batalla
+                    if (pokemon == jugador1) return; // No puedes pelear contra ti mismo
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BattleScreen(
+                          jugador: jugador1!, 
+                          rival: pokemon
+                        ),
+                      ),
+                    ).then((_) {
+                      // Al volver, reiniciamos la selección
+                      setState(() {
+                        jugador1 = null;
+                      });
+                    });
+                  }
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue[100] : Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    border: isSelected 
+                        ? Border.all(color: Colors.blue, width: 3) 
+                        : Border.all(color: Colors.grey[300]!),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12, 
+                        blurRadius: 4, 
+                        offset: const Offset(2, 2)
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Imagen un poco más grande
+                      Image.network(pokemon.spriteFront, height: 110, scale: 0.8),
+                      const SizedBox(height: 5),
+                      Text(
+                        pokemon.nombre,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 18,
+                          color: isSelected ? Colors.blue[800] : Colors.black,
+                        ),
+                      ),
+                      // Etiqueta del tipo bonita
+                      Container(
+                        margin: const EdgeInsets.only(top: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          pokemon.tipo.first.toString().split('.').last,
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// PANTALLA DE BATALLA
+// ==========================================
 class BattleScreen extends StatefulWidget {
-  const BattleScreen({super.key});
+  // Ahora recibimos los pokemones en el constructor
+  final Pokemon jugador;
+  final Pokemon rival;
+
+  const BattleScreen({super.key, required this.jugador, required this.rival});
 
   @override
   State<BattleScreen> createState() => _BattleScreenState();
 }
 
 class _BattleScreenState extends State<BattleScreen> {
-  // Variables para controlar la batalla
   late Pokemon miPokemon;
   late Pokemon oponentePokemon;
   
   late double miVidaMax;
   late double oponenteVidaMax;
 
-  List<String> combatLog = []; // Ahora es una lista vacía
-  
-  // NUEVA VARIABLE: Para bloquear los botones mientras se espera
+  List<String> combatLog = [];
   bool turnoEnProgreso = false; 
 
   @override
@@ -49,40 +189,40 @@ class _BattleScreenState extends State<BattleScreen> {
 
   void agregarLog(String mensaje) {
     setState(() {
-      // Insertamos en la posición 0 para que lo nuevo salga arriba
       combatLog.insert(0, mensaje); 
     });
   }
-  void iniciarBatalla() {
-    setState(() {
-      // Puedes cambiar los índices para probar otros Pokémon
-      miPokemon = pokedex[3]; // Pikachu
-      oponentePokemon = pokedex[1]; // Charmander
 
-      miVidaMax = miPokemon.vida;
-      oponenteVidaMax = oponentePokemon.vida;
-      
-      agregarLog("¡Un ${oponentePokemon.nombre} salvaje apareció!");
-      turnoEnProgreso = false;
-    });
+  void iniciarBatalla() {
+    // Usamos los Pokémon que recibimos del constructor (widget.jugador y widget.rival)
+    miPokemon = widget.jugador;
+    oponentePokemon = widget.rival;
+
+    // IMPORTANTE: Curarlos antes de empezar, sino seguirán heridos de la batalla anterior
+    miPokemon.curarTotalmente();
+    oponentePokemon.curarTotalmente();
+
+    // Establecemos la vida máxima actual
+    miVidaMax = miPokemon.vida;
+    oponenteVidaMax = oponentePokemon.vida;
+    
+    combatLog.clear();
+    agregarLog("¡Batalla entre ${miPokemon.nombre} y ${oponentePokemon.nombre}!");
+    turnoEnProgreso = false;
   }
 
-  // --- AQUÍ ESTÁ LA MAGIA DEL DELAY ---
-  // Agregamos 'async' para poder usar esperas
   void realizarTurno(Ataque ataqueSeleccionado) async {
-    
-    // 1. Bloqueamos los botones para que no puedas spamear ataques
     setState(() {
       turnoEnProgreso = true;
     });
 
-    // --- FASE 1: TU ATAQUE ---
+    // --- FASE 1: MI ATAQUE ---
     setState(() {
       double danioFinal = TablaDanio.obtenerDanioTotal(miPokemon, oponentePokemon, ataqueSeleccionado);
       double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataqueSeleccionado.tipo, oponentePokemon.tipo);
 
       oponentePokemon.vida -= danioFinal;
-      print(oponentePokemon.vida);
+      
       String eficacia = "";
       if (multiplicador > 1.0) eficacia = "¡Es súper efectivo!";
       if (multiplicador < 1.0 && multiplicador > 0) eficacia = "No es muy eficaz...";
@@ -91,25 +231,20 @@ class _BattleScreenState extends State<BattleScreen> {
       agregarLog("${miPokemon.nombre} usó ${ataqueSeleccionado.nombre}.\n$eficacia");
     });
 
-    // 2. Comprobar si ganaste ANTES de esperar
     if (oponentePokemon.vida <= 0) {
       setState(() {
         agregarLog("¡${oponentePokemon.nombre} se debilitó! ¡Ganaste!");
-        // No desbloqueamos 'turnoEnProgreso' para que termine el juego visualmente
       });
       return; 
     }
 
-    // --- PAUSA DE DRAMATISMO (2 SEGUNDOS) ---
+    // --- PAUSA ---
     await Future.delayed(const Duration(seconds: 2));
-
-    // Si el widget ya no existe (el usuario se salió), paramos
     if (!mounted) return;
 
     // --- FASE 2: TURNO RIVAL ---
     setState(() {
       if (oponentePokemon.ataques.isNotEmpty) {
-        // El rival elige un ataque al azar
         var random = Random();
         Ataque ataqueRival = oponentePokemon.ataques[random.nextInt(oponentePokemon.ataques.length)];
         double danioRival = TablaDanio.obtenerDanioTotal(oponentePokemon, miPokemon, ataqueRival);
@@ -118,16 +253,14 @@ class _BattleScreenState extends State<BattleScreen> {
         miPokemon.vida -= danioRival;
          
         String eficaciaRival = "";
-        if (multiplicador> 1.0) eficaciaRival = "¡Te dolió mucho!";
+        if (multiplicador > 1.0) eficaciaRival = "¡Te dolió mucho!";
 
         agregarLog("El rival usó ${ataqueRival.nombre}.\n$eficaciaRival Daño: ${danioRival.toStringAsFixed(1)}");
       }
 
-      // 3. Comprobar si perdiste
       if (miPokemon.vida <= 0) {
-        "¡${miPokemon.nombre} se debilitó! Perdiste...";
+        agregarLog("¡${miPokemon.nombre} se debilitó! Perdiste...");
       } else {
-        // Si nadie perdió, desbloqueamos los botones para el siguiente turno
         turnoEnProgreso = false; 
       }
     });
@@ -159,22 +292,28 @@ class _BattleScreenState extends State<BattleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text("Batalla Pokémon"), centerTitle: true, backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
+      // Botón para salir y volver a elegir
+      appBar: AppBar(
+        title: const Text("Batalla Pokémon"), 
+        centerTitle: true, 
+        backgroundColor: Colors.redAccent, 
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 500),
           decoration: BoxDecoration(
-            color: Colors.white, // Color base por si falla la imagen
-            // Borde y sombra (opcional, para estilo GameBoy)
+            color: Colors.white,
             border: Border.all(color: Colors.black, width: 4),
             boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(5, 5))],
-            
-            // --- AQUÍ VA LA IMAGEN DE FONDO ---
             image: const DecorationImage(
-              // Usamos una imagen de "campo de batalla" de internet
               image: AssetImage("assets/fondo.png"), 
-              fit: BoxFit.cover, // Esto hace que la imagen cubra todo el fondo sin deformarse
-              alignment: Alignment.bottomCenter, // Alineamos al suelo
+              fit: BoxFit.cover,
+              alignment: Alignment.bottomCenter,
             ),
           ),
           child: Column(
@@ -196,26 +335,25 @@ class _BattleScreenState extends State<BattleScreen> {
                 ),
               ),
 
-              // --- LOG DE BATALLA (CON SCROLL) ---
+              // --- LOG ---
               Container(
                 width: double.infinity,
-                height: 120, // Lo hice un poco más alto para ver mejor
+                height: 120,
                 decoration: BoxDecoration(
                   color: Colors.black87,
                   border: Border.all(color: Colors.grey),
                 ),
                 child: ListView.builder(
                   padding: const EdgeInsets.all(10),
-                  // Esto asegura que la lista se construya eficientemente
                   itemCount: combatLog.length, 
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2.0),
                       child: Text(
                         combatLog[index],
-                        textAlign: TextAlign.left, // Alineado a la izquierda como lista
+                        textAlign: TextAlign.left,
                         style: TextStyle(
-                          color: index == 0 ? Colors.yellow : Colors.white70, // El último mensaje resalta en amarillo
+                          color: index == 0 ? Colors.yellow : Colors.white70,
                           fontSize: 14,
                           fontFamily: 'Courier',
                         ),
@@ -225,7 +363,7 @@ class _BattleScreenState extends State<BattleScreen> {
                 ),
               ),
 
-              // --- MENÚ DE ATAQUES ---
+              // --- ATAQUES ---
               Expanded(
                 flex: 2,
                 child: Container(
@@ -247,16 +385,13 @@ class _BattleScreenState extends State<BattleScreen> {
                           itemCount: miPokemon.ataques.length,
                           itemBuilder: (context, index) {
                             final ataque = miPokemon.ataques[index];
-                            
-                            // Lógica para habilitar/deshabilitar botones
                             final bool botonesHabilitados = !turnoEnProgreso && miPokemon.vida > 0 && oponentePokemon.vida > 0;
 
                             return ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: botonesHabilitados ? getColorElemento(ataque.tipo) : Colors.grey, // Se ponen grises si están bloqueados
+                                backgroundColor: botonesHabilitados ? getColorElemento(ataque.tipo) : Colors.grey,
                                 foregroundColor: Colors.white,
                               ),
-                              // Si turnoEnProgreso es TRUE, onPressed es null (botón desactivado)
                               onPressed: botonesHabilitados ? () => realizarTurno(ataque) : null,
                               child: Text(ataque.nombre),
                             );
@@ -275,7 +410,6 @@ class _BattleScreenState extends State<BattleScreen> {
   }
 }
 
-// Widget auxiliar para mostrar la info del Pokémon
 class PokemonDisplay extends StatelessWidget {
   final Pokemon pokemon;
   final double maxVida;
@@ -296,7 +430,7 @@ class PokemonDisplay extends StatelessWidget {
         SizedBox(
           width: 120,
           child: LinearProgressIndicator(
-            value: pokemon.vida / maxVida,
+            value: (pokemon.vida / maxVida).clamp(0.0, 1.0), // .clamp asegura que no de error si baja de 0
             color: (pokemon.vida / maxVida) > 0.5 ? Colors.green : Colors.red,
             backgroundColor: Colors.grey[300],
             minHeight: 8,
