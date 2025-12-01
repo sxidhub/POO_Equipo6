@@ -22,9 +22,8 @@ class PokemonApp extends StatelessWidget {
   }
 }
 
-// ==========================================
+
 // NUEVA PANTALLA: SELECCIÓN DE POKÉMON
-// ==========================================
 class PantallaSeleccion extends StatefulWidget {
   const PantallaSeleccion({super.key});
 
@@ -38,7 +37,6 @@ class _PantallaSeleccionState extends State<PantallaSeleccion> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 1. Fondo oscuro fuera de la "pantalla del celular"
       backgroundColor: Colors.grey[900], 
       
       appBar: AppBar(
@@ -48,23 +46,20 @@ class _PantallaSeleccionState extends State<PantallaSeleccion> {
         centerTitle: true,
       ),
       
-      // 2. Centramos y limitamos el ancho
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 500),
           decoration: BoxDecoration(
-            color: Colors.white, // Fondo blanco para la lista
-            // Borde y sombra para que parezca una pantalla flotando
+            color: Colors.white,
             border: Border.symmetric(vertical: BorderSide(color: Colors.black, width: 4)),
             boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 20)],
           ),
           
-          // 3. Aquí va tu GridView original
           child: GridView.builder(
             padding: const EdgeInsets.all(10),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 columnas
-              childAspectRatio: 0.85, // Ajusté un poco esto para que las cartas no sean tan altas
+              crossAxisCount: 2,
+              childAspectRatio: 0.85,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
             ),
@@ -78,12 +73,12 @@ class _PantallaSeleccionState extends State<PantallaSeleccion> {
               return GestureDetector(
                 onTap: () {
                   if (jugador1 == null) {
-                    // PASO 1: Elegir mi pokemon
+                    //Elegir mi pokemon
                     setState(() {
                       jugador1 = pokemon;
                     });
                   } else {
-                    // PASO 2: Elegir rival e ir a la batalla
+                    //Elegir rival e ir a la batalla
                     if (pokemon == jugador1) return; // No puedes pelear contra ti mismo
 
                     Navigator.push(
@@ -157,9 +152,7 @@ class _PantallaSeleccionState extends State<PantallaSeleccion> {
   }
 }
 
-// ==========================================
 // PANTALLA DE BATALLA
-// ==========================================
 class BattleScreen extends StatefulWidget {
   // Ahora recibimos los pokemones en el constructor
   final Pokemon jugador;
@@ -198,6 +191,9 @@ class _BattleScreenState extends State<BattleScreen> {
     miPokemon = widget.jugador;
     oponentePokemon = widget.rival;
 
+    miPokemon.curarTotalmente();
+    oponentePokemon.curarTotalmente();
+
     // Establecemos la vida máxima actual
     miVidaMax = miPokemon.maxVida;
     oponenteVidaMax = oponentePokemon.maxVida;
@@ -207,60 +203,85 @@ class _BattleScreenState extends State<BattleScreen> {
     turnoEnProgreso = false;
   }
 
-  void realizarTurno(Ataque ataqueSeleccionado) async {
+// Lógica principal del turno gestionando la velocidad
+  void realizarTurno(Ataque ataqueJugador) async {
     setState(() {
       turnoEnProgreso = true;
     });
 
-    // --- FASE 1: MI ATAQUE ---
-    setState(() {
-      print("1. Mi vida: ${miPokemon.vida}, Vida oponente: ${oponentePokemon.vida}");
-      double danioFinal = TablaDanio.obtenerDanioTotal(miPokemon, oponentePokemon, ataqueSeleccionado);
-      double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataqueSeleccionado.tipo, oponentePokemon.tipo);
+    // 1. El rival elige su ataque ANTES de empezar la secuencia
+    var random = Random();
+    Ataque ataqueRival = oponentePokemon.ataques[random.nextInt(oponentePokemon.ataques.length)];
 
-      oponentePokemon.vida -= danioFinal;
+    // 2. Comparar velocidades
+    bool jugadorEsMasRapido = miPokemon.velocidad >= oponentePokemon.velocidad;
+
+    if (jugadorEsMasRapido) {
+      // --- CASO A: TÚ ERES MÁS RÁPIDO ---
+      // 1. Atacas tú
+      await ejecutarAtaque(atacante: miPokemon, defensor: oponentePokemon, ataque: ataqueJugador, esJugador: true);
       
-      String eficacia = "";
-      if (multiplicador > 1.0) eficacia = "¡Es súper efectivo!";
-      if (multiplicador < 1.0 && multiplicador > 0) eficacia = "No es muy eficaz...";
-      if (multiplicador == 0) eficacia = "¡No afecta!";
+      // Si el rival sigue vivo, contraataca después de una pausa
+      if (oponentePokemon.vida > 0) {
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return; // Seguridad por si cierras la app
+        await ejecutarAtaque(atacante: oponentePokemon, defensor: miPokemon, ataque: ataqueRival, esJugador: false);
+      }
 
-      agregarLog("${miPokemon.nombre} usó ${ataqueSeleccionado.nombre}.\n$eficacia");
-    });
+    } else {
+      // --- CASO B: RIVAL ES MÁS RÁPIDO ---
+      // 1. Ataca el rival primero
+      agregarLog("¡${oponentePokemon.nombre} es más rápido!"); // Aviso visual
+      await Future.delayed(const Duration(seconds: 1)); // Pequeña pausa para leer que es más rápido
+      
+      await ejecutarAtaque(atacante: oponentePokemon, defensor: miPokemon, ataque: ataqueRival, esJugador: false);
 
-    if (oponentePokemon.vida <= 0) {
-      setState(() {
-        agregarLog("¡${oponentePokemon.nombre} se debilitó! ¡Ganaste!");
-      });
-      return; 
+      // Si sigues vivo, atacas tú
+      if (miPokemon.vida > 0) {
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+        await ejecutarAtaque(atacante: miPokemon, defensor: oponentePokemon, ataque: ataqueJugador, esJugador: true);
+      }
     }
 
-    // --- PAUSA ---
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-
-    // --- FASE 2: TURNO RIVAL ---
+    // 3. Verificar fin del juego y liberar botones
     setState(() {
-      if (oponentePokemon.ataques.isNotEmpty) {
-        var random = Random();
-        print("2. Mi vida: ${miPokemon.vida}, Vida oponente: ${oponentePokemon.vida}");
-        Ataque ataqueRival = oponentePokemon.ataques[random.nextInt(oponentePokemon.ataques.length)];
-        double danioRival = TablaDanio.obtenerDanioTotal(oponentePokemon, miPokemon, ataqueRival);
-        double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataqueRival.tipo, miPokemon.tipo);
-
-        miPokemon.vida -= danioRival;
-         
-        String eficaciaRival = "";
-        if (multiplicador > 1.0) eficaciaRival = "¡Te dolió mucho!";
-
-        agregarLog("El rival usó ${ataqueRival.nombre}.\n$eficaciaRival Daño: ${danioRival.toStringAsFixed(1)}");
-      }
-
       if (miPokemon.vida <= 0) {
         agregarLog("¡${miPokemon.nombre} se debilitó! Perdiste...");
+      } else if (oponentePokemon.vida <= 0) {
+        agregarLog("¡${oponentePokemon.nombre} se debilitó! ¡Ganaste!");
       } else {
-        turnoEnProgreso = false; 
+        turnoEnProgreso = false; // Habilita botones para el siguiente turno
       }
+    });
+  }
+
+  // Calcula daño y actualiza la vida (Sirve para ambos)
+  Future<void> ejecutarAtaque({
+    required Pokemon atacante, 
+    required Pokemon defensor, 
+    required Ataque ataque, 
+    required bool esJugador
+  }) async {
+    
+    setState(() {
+      // Cálculos matemáticos usando tu clase TablaDanio
+      double danio = TablaDanio.obtenerDanioTotal(atacante, defensor, ataque);
+      double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataque.tipo, defensor.tipo);
+
+      // Restar vida
+      defensor.vida -= danio;
+
+      // Generar mensaje de eficacia
+      String textoEficacia = "";
+      if (multiplicador > 1.0) textoEficacia = "¡Es súper efectivo!";
+      if (multiplicador < 1.0 && multiplicador > 0) textoEficacia = "No es muy eficaz...";
+      if (multiplicador == 0) textoEficacia = "¡No afecta!";
+
+      // Formatear mensaje
+      String nombreAtacante = esJugador ? atacante.nombre : "El rival";
+      
+      agregarLog("$nombreAtacante usó ${ataque.nombre}.\n$textoEficacia Daño: ${danio.toStringAsFixed(1)}");
     });
   }
 

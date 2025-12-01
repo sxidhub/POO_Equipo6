@@ -21,7 +21,7 @@ class Pokemon {
   
   late double _maxVida;
   late double _vida;
-  final double velocidad;
+  double velocidad;
   static final Random _random = Random();
 
   Pokemon({
@@ -55,10 +55,12 @@ class Pokemon {
     _vida = nuevaVida;
   }
 
-
   void curarTotalmente() {
-    _vida = _maxVida; 
-    estados.clear();
+      _vida = _maxVida; 
+      estados.clear();
+      
+      // --- NUEVO: Recalcular velocidad aleatoria ---
+      velocidad = (_random.nextDouble() * 3 + 1) * nivel;
   }
 }
 
@@ -66,7 +68,7 @@ class Pokemon {
 final List<Pokemon> pokedex = [
   Pokemon(
     nombre: "Snorlax", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Normal}, 
     ataques: [tacleada, golpeCuerpo],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png",
@@ -74,7 +76,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Charmander", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Fuego}, 
     ataques: [lanzallamas,ascuas],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png",
@@ -82,7 +84,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Squirtle", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Agua}, 
     ataques: [hidroBomba,pistolaAgua],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png",
@@ -90,7 +92,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Pikachu", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Electrico}, 
     ataques: [rayo,impactrueno],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
@@ -98,7 +100,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Chikorita", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Hierba}, 
     ataques: [hojaAfilada,latigoCepa],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/152.png",
@@ -106,7 +108,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Glaceon", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Hielo}, 
     ataques: [rayoHielo,cantoHelado],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/471.png",
@@ -114,7 +116,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Machamp", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Lucha}, 
     ataques: [golpeKarate,aBocajarro],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/68.png",
@@ -122,7 +124,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Arbok", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Veneno}, 
     ataques: [bombaAcida,picotazoVen],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/24.png",
@@ -130,7 +132,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Cubone", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Tierra}, 
     ataques: [terremoto,disparoLodo],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/104.png",
@@ -138,7 +140,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Tornadus", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Volador}, 
     ataques: [vendaval,picotazo],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/641.png",
@@ -146,7 +148,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Mewtwo", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Psiquico}, 
     ataques: [psiquico,confusion],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png",
@@ -154,7 +156,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Pinsir", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Bicho}, 
     ataques: [tijeraX,corteFuria],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/127.png",
@@ -162,7 +164,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Sudowoodo", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Roca}, 
     ataques: [avalancha,lanzarrocas],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/185.png",
@@ -170,7 +172,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Misdreavus", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Fantasma}, 
     ataques: [bolaSombra,lenguetazo],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/200.png",
@@ -178,7 +180,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Dratini", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Dragon}, 
     ataques: [garraDragon,dragoaliento],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/147.png",
@@ -186,7 +188,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Umbreon", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Siniestro}, 
     ataques: [pulsoUmbrio,mordisco],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/197.png",
@@ -194,7 +196,7 @@ final List<Pokemon> pokedex = [
   ),
   Pokemon(
     nombre: "Magnemite", 
-    nivel: 1, 
+    nivel: 20, 
     tipo: {Elementos.Acero}, 
     ataques: [focoResplandor],
     spriteFront: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/81.png",
