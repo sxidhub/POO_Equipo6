@@ -14,7 +14,7 @@ class ConsumiblesCuracion extends Consumibles {
       String nombre, String descripcion, String sprite, this.cantidadCuracion)
       : super(nombre, descripcion, sprite);
   
-  Map<ConsumiblesCuracion, int> usarCuracion(Pokemon pokemon, Map<ConsumiblesCuracion, int> mochila) {
+  Map<Consumibles, int> usarCuracion(Pokemon pokemon, Map<Consumibles, int> mochila) {
     if (pokemon.maxVida < pokemon.vida + cantidadCuracion) {
       pokemon.vida = pokemon.maxVida;
     } else {

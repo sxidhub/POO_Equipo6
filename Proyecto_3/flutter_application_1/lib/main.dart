@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/consumibles.dart';
 import 'dart:math';
 import 'pokedex.dart';
 import 'ataques.dart';
@@ -22,9 +23,8 @@ class PokemonApp extends StatelessWidget {
   }
 }
 
-// ==========================================
+
 // NUEVA PANTALLA: SELECCIÓN DE POKÉMON
-// ==========================================
 class PantallaSeleccion extends StatefulWidget {
   const PantallaSeleccion({super.key});
 
@@ -38,7 +38,6 @@ class _PantallaSeleccionState extends State<PantallaSeleccion> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 1. Fondo oscuro fuera de la "pantalla del celular"
       backgroundColor: Colors.grey[900], 
       
       appBar: AppBar(
@@ -48,23 +47,20 @@ class _PantallaSeleccionState extends State<PantallaSeleccion> {
         centerTitle: true,
       ),
       
-      // 2. Centramos y limitamos el ancho
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 500),
           decoration: BoxDecoration(
-            color: Colors.white, // Fondo blanco para la lista
-            // Borde y sombra para que parezca una pantalla flotando
+            color: Colors.white,
             border: Border.symmetric(vertical: BorderSide(color: Colors.black, width: 4)),
             boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 20)],
           ),
           
-          // 3. Aquí va tu GridView original
           child: GridView.builder(
             padding: const EdgeInsets.all(10),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 columnas
-              childAspectRatio: 0.85, // Ajusté un poco esto para que las cartas no sean tan altas
+              crossAxisCount: 2,
+              childAspectRatio: 0.85,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
             ),
@@ -78,12 +74,12 @@ class _PantallaSeleccionState extends State<PantallaSeleccion> {
               return GestureDetector(
                 onTap: () {
                   if (jugador1 == null) {
-                    // PASO 1: Elegir mi pokemon
+                    //Elegir mi pokemon
                     setState(() {
                       jugador1 = pokemon;
                     });
                   } else {
-                    // PASO 2: Elegir rival e ir a la batalla
+                    //Elegir rival e ir a la batalla
                     if (pokemon == jugador1) return; // No puedes pelear contra ti mismo
 
                     Navigator.push(
@@ -157,9 +153,7 @@ class _PantallaSeleccionState extends State<PantallaSeleccion> {
   }
 }
 
-// ==========================================
 // PANTALLA DE BATALLA
-// ==========================================
 class BattleScreen extends StatefulWidget {
   // Ahora recibimos los pokemones en el constructor
   final Pokemon jugador;
@@ -178,6 +172,9 @@ class _BattleScreenState extends State<BattleScreen> {
   late double miVidaMax;
   late double oponenteVidaMax;
 
+  Map<Consumibles, int> mochila = {}; //NUEVO
+  bool mostrandoMochila = false;
+
   List<String> combatLog = [];
   bool turnoEnProgreso = false; 
 
@@ -194,9 +191,18 @@ class _BattleScreenState extends State<BattleScreen> {
   }
 
   void iniciarBatalla() {
+    //Generamos una mochila al azar para el jugador
+    mochila = {
+      pocion: Random().nextInt(3) + 1, // Entre 1 y 3 pociones
+      hiperPosion: Random().nextInt(2)+1, // Entre 0 y 1 hiper pociones //BORRAR DESPUES
+    };
+
     // Usamos los Pokémon que recibimos del constructor (widget.jugador y widget.rival)
     miPokemon = widget.jugador;
     oponentePokemon = widget.rival;
+
+    miPokemon.curarTotalmente();
+    oponentePokemon.curarTotalmente();
 
     // Establecemos la vida máxima actual
     miVidaMax = miPokemon.maxVida;
@@ -205,62 +211,121 @@ class _BattleScreenState extends State<BattleScreen> {
     combatLog.clear();
     agregarLog("¡Batalla entre ${miPokemon.nombre} y ${oponentePokemon.nombre}!");
     turnoEnProgreso = false;
+    mostrandoMochila = false;
   }
 
-  void realizarTurno(Ataque ataqueSeleccionado) async {
+// Lógica principal del turno gestionando la velocidad ----------------------------------------------------------------------------------
+  void realizarTurno(Ataque ataqueJugador) async {
     setState(() {
       turnoEnProgreso = true;
     });
 
-    // --- FASE 1: MI ATAQUE ---
-    setState(() {
-      print("1. Mi vida: ${miPokemon.vida}, Vida oponente: ${oponentePokemon.vida}");
-      double danioFinal = TablaDanio.obtenerDanioTotal(miPokemon, oponentePokemon, ataqueSeleccionado);
-      double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataqueSeleccionado.tipo, oponentePokemon.tipo);
+    // 1. El rival elige su ataque ANTES de empezar la secuencia
+    var random = Random();
+    Ataque ataqueRival = oponentePokemon.ataques[random.nextInt(oponentePokemon.ataques.length)];
 
-      oponentePokemon.vida -= danioFinal;
+    // 2. Comparar velocidades
+    bool jugadorEsMasRapido = miPokemon.velocidad >= oponentePokemon.velocidad;
+
+    if (jugadorEsMasRapido) {
+      // --- CASO A: TÚ ERES MÁS RÁPIDO ---
+      // 1. Atacas tú
+      await ejecutarAtaque(atacante: miPokemon, defensor: oponentePokemon, ataque: ataqueJugador, esJugador: true);
       
-      String eficacia = "";
-      if (multiplicador > 1.0) eficacia = "¡Es súper efectivo!";
-      if (multiplicador < 1.0 && multiplicador > 0) eficacia = "No es muy eficaz...";
-      if (multiplicador == 0) eficacia = "¡No afecta!";
+      // Si el rival sigue vivo, contraataca después de una pausa
+      if (oponentePokemon.vida > 0) {
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return; // Seguridad por si cierras la app
+        await ejecutarAtaque(atacante: oponentePokemon, defensor: miPokemon, ataque: ataqueRival, esJugador: false);
+      }
 
-      agregarLog("${miPokemon.nombre} usó ${ataqueSeleccionado.nombre}.\n$eficacia");
-    });
+    } else {
+      // --- CASO B: RIVAL ES MÁS RÁPIDO ---
+      // 1. Ataca el rival primero
+      agregarLog("¡${oponentePokemon.nombre} es más rápido!"); // Aviso visual
+      await Future.delayed(const Duration(seconds: 1)); // Pequeña pausa para leer que es más rápido
+      
+      await ejecutarAtaque(atacante: oponentePokemon, defensor: miPokemon, ataque: ataqueRival, esJugador: false);
 
-    if (oponentePokemon.vida <= 0) {
-      setState(() {
-        agregarLog("¡${oponentePokemon.nombre} se debilitó! ¡Ganaste!");
-      });
-      return; 
+      // Si sigues vivo, atacas tú
+      if (miPokemon.vida > 0) {
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+        await ejecutarAtaque(atacante: miPokemon, defensor: oponentePokemon, ataque: ataqueJugador, esJugador: true);
+      }
     }
 
-    // --- PAUSA ---
+    // 3. Verificar fin del juego y liberar botones
+    verificarFinTurno();
+  }
+
+  //Logica para usar un objeto --------------------------------------------------------------------------------------------------------
+  void usarObjeto(Consumibles item) async {
+    setState(() { turnoEnProgreso = true; });
+
+    // 1. Aplicar efecto del objeto (Jugador)
+    if (item is ConsumiblesCuracion) {
+      setState(() {
+        // Usamos el método modificado en consumibles.dart
+        mochila = item.usarCuracion(miPokemon, mochila); 
+        agregarLog("¡Usaste ${item.nombre}!");
+        agregarLog("Recuperaste ${item.cantidadCuracion.toInt()} HP.");
+      });
+    }
+
+    // 2. Pausa dramática
     await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
 
-    // --- FASE 2: TURNO RIVAL ---
+    // 3. Turno del Rival (El rival ataca porque gastaste tu turno)
+    if (oponentePokemon.vida > 0) {
+      var random = Random();
+      Ataque ataqueRival = oponentePokemon.ataques[random.nextInt(oponentePokemon.ataques.length)];
+      
+      await ejecutarAtaque(atacante: oponentePokemon, defensor: miPokemon, ataque: ataqueRival, esJugador: false);
+    }
+    verificarFinTurno();
+  }
+
+
+
+  void verificarFinTurno() {
     setState(() {
-      if (oponentePokemon.ataques.isNotEmpty) {
-        var random = Random();
-        print("2. Mi vida: ${miPokemon.vida}, Vida oponente: ${oponentePokemon.vida}");
-        Ataque ataqueRival = oponentePokemon.ataques[random.nextInt(oponentePokemon.ataques.length)];
-        double danioRival = TablaDanio.obtenerDanioTotal(oponentePokemon, miPokemon, ataqueRival);
-        double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataqueRival.tipo, miPokemon.tipo);
-
-        miPokemon.vida -= danioRival;
-         
-        String eficaciaRival = "";
-        if (multiplicador > 1.0) eficaciaRival = "¡Te dolió mucho!";
-
-        agregarLog("El rival usó ${ataqueRival.nombre}.\n$eficaciaRival Daño: ${danioRival.toStringAsFixed(1)}");
-      }
-
       if (miPokemon.vida <= 0) {
         agregarLog("¡${miPokemon.nombre} se debilitó! Perdiste...");
+      } else if (oponentePokemon.vida <= 0) {
+        agregarLog("¡${oponentePokemon.nombre} se debilitó! ¡Ganaste!");
       } else {
-        turnoEnProgreso = false; 
+        turnoEnProgreso = false;
       }
+    });
+  }
+
+  // Calcula daño y actualiza la vida (Sirve para ambos)
+  Future<void> ejecutarAtaque({
+    required Pokemon atacante, 
+    required Pokemon defensor, 
+    required Ataque ataque, 
+    required bool esJugador
+  }) async {
+    
+    setState(() {
+      // Cálculos matemáticos usando tu clase TablaDanio
+      double danio = TablaDanio.obtenerDanioTotal(atacante, defensor, ataque);
+      double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataque.tipo, defensor.tipo);
+
+      // Restar vida
+      defensor.vida -= danio;
+
+      // Generar mensaje de eficacia
+      String textoEficacia = "";
+      if (multiplicador > 1.0) textoEficacia = "¡Es súper efectivo!";
+      if (multiplicador < 1.0 && multiplicador > 0) textoEficacia = "No es muy eficaz...";
+      if (multiplicador == 0) textoEficacia = "¡No afecta!";
+
+      // Formatear mensaje
+      String nombreAtacante = esJugador ? atacante.nombre : "El rival";
+      
+      agregarLog("$nombreAtacante usó ${ataque.nombre}.\n$textoEficacia Daño: ${danio.toStringAsFixed(1)}");
     });
   }
 
@@ -286,7 +351,7 @@ class _BattleScreenState extends State<BattleScreen> {
     }
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -307,7 +372,7 @@ class _BattleScreenState extends State<BattleScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             border: Border.all(color: Colors.black, width: 4),
-            boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(5, 5))],
+            boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(5, 5))],
             image: const DecorationImage(
               image: AssetImage("assets/fondo.png"), 
               fit: BoxFit.cover,
@@ -316,7 +381,7 @@ class _BattleScreenState extends State<BattleScreen> {
           ),
           child: Column(
             children: [
-              // --- ÁREA VISUAL ---
+              // --- ÁREA VISUAL (NO TOCADA, flex: 3) ---
               Expanded(
                 flex: 3,
                 child: Stack(
@@ -333,7 +398,7 @@ class _BattleScreenState extends State<BattleScreen> {
                 ),
               ),
 
-              // --- LOG ---
+              // --- LOG (NO TOCADO, height: 120) ---
               Container(
                 width: double.infinity,
                 height: 120,
@@ -361,7 +426,7 @@ class _BattleScreenState extends State<BattleScreen> {
                 ),
               ),
 
-              // --- ATAQUES ---
+              // --- CONTROLES (MODIFICADO LIGERAMENTE PARA INCLUIR MOCHILA) ---
               Expanded(
                 flex: 2,
                 child: Container(
@@ -369,32 +434,57 @@ class _BattleScreenState extends State<BattleScreen> {
                   padding: const EdgeInsets.all(10),
                   child: Column(
                     children: [
-                      Text(turnoEnProgreso ? "Esperando al rival..." : "¿Qué hará ${miPokemon.nombre}?", 
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                      const SizedBox(height: 10),
-                      Expanded(
-                        child: GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 3.0,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                          ),
-                          itemCount: miPokemon.ataques.length,
-                          itemBuilder: (context, index) {
-                            final ataque = miPokemon.ataques[index];
-                            final bool botonesHabilitados = !turnoEnProgreso && miPokemon.vida > 0 && oponentePokemon.vida > 0;
-
-                            return ElevatedButton(
+                      // 1. Título y Pestañas
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Botón Ataques
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: turnoEnProgreso ? null : () => setState(() => mostrandoMochila = false),
+                              icon: const Icon(Icons.flash_on, size: 18),
+                              label: const Text("ATAQUES"),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: botonesHabilitados ? getColorElemento(ataque.tipo) : Colors.grey,
+                                backgroundColor: !mostrandoMochila ? Colors.red : Colors.grey,
                                 foregroundColor: Colors.white,
+                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.horizontal(left: Radius.circular(10))),
                               ),
-                              onPressed: botonesHabilitados ? () => realizarTurno(ataque) : null,
-                              child: Text(ataque.nombre),
-                            );
-                          },
-                        ),
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          // Botón Mochila
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: turnoEnProgreso ? null : () => setState(() => mostrandoMochila = true),
+                              icon: const Icon(Icons.backpack, size: 18),
+                              label: const Text("MOCHILA"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: mostrandoMochila ? Colors.blue : Colors.grey,
+                                foregroundColor: Colors.white,
+                                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.horizontal(right: Radius.circular(10))),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 10),
+                      
+                      // 2. Texto informativo
+                      Text(
+                        turnoEnProgreso 
+                          ? "Esperando al rival..." 
+                          : (mostrandoMochila ? "Selecciona un objeto:" : "¿Qué hará ${miPokemon.nombre}?"), 
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                      ),
+                      
+                      const SizedBox(height: 5),
+
+                      // 3. El Grid Cambiante (Aquí ocurre la magia)
+                      Expanded(
+                        child: mostrandoMochila 
+                          ? _buildMochilaGrid() // Muestra Mochila
+                          : _buildAtaquesGrid() // Muestra Ataques (Tu grid original)
                       ),
                     ],
                   ),
@@ -406,7 +496,67 @@ class _BattleScreenState extends State<BattleScreen> {
       ),
     );
   }
-}
+
+  // 1. Grid de Ataques (Tu lógica original encapsulada)
+  Widget _buildAtaquesGrid() {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, childAspectRatio: 3.0, crossAxisSpacing: 10, mainAxisSpacing: 10,
+      ),
+      itemCount: miPokemon.ataques.length,
+      itemBuilder: (context, index) {
+        final ataque = miPokemon.ataques[index];
+        final bool botonesHabilitados = !turnoEnProgreso && miPokemon.vida > 0 && oponentePokemon.vida > 0;
+
+        return ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: botonesHabilitados ? getColorElemento(ataque.tipo) : Colors.grey,
+            foregroundColor: Colors.white,
+          ),
+          onPressed: botonesHabilitados ? () => realizarTurno(ataque) : null,
+          child: Text(ataque.nombre),
+        );
+      },
+    );
+  }
+
+  // 2. Grid de Mochila (La nueva lógica)
+  Widget _buildMochilaGrid() {
+    if (mochila.isEmpty) {
+      return const Center(
+        child: Text("¡No tienes objetos!", style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic))
+      );
+    }
+
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, childAspectRatio: 3.0, crossAxisSpacing: 10, mainAxisSpacing: 10,
+      ),
+      itemCount: mochila.length,
+      itemBuilder: (context, index) {
+        Consumibles item = mochila.keys.elementAt(index);
+        int cantidad = mochila[item]!;
+        bool habilitado = !turnoEnProgreso && miPokemon.vida > 0 && oponentePokemon.vida > 0;
+
+        return ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blueAccent, 
+            foregroundColor: Colors.white
+          ),
+          onPressed: habilitado ? () => usarObjeto(item) : null,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.network(item.sprite, height: 24, errorBuilder: (c,e,s) => const Icon(Icons.local_drink, size: 20, color: Colors.white)),
+              const SizedBox(width: 8),
+              Flexible(child: Text("${item.nombre} (x$cantidad)", style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}  
 
 class PokemonDisplay extends StatelessWidget {
   final Pokemon pokemon;
