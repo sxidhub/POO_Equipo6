@@ -19,7 +19,8 @@ class Pokemon {
   final String spriteFront; // Imagen de frente (para el oponente)
   final String spriteBack;  // Imagen de espalda (para mi pokemon)
   
-  double _vida;
+  late double _maxVida;
+  late double _vida;
   final double velocidad;
   static final Random _random = Random();
 
@@ -28,25 +29,35 @@ class Pokemon {
     required this.nivel,
     required this.tipo,
     required this.ataques,
-    // --- REQUERIDOS EN EL CONSTRUCTOR ---
     required this.spriteFront, 
     required this.spriteBack,
-  })  : _vida = (_random.nextDouble() * 5 + 5) * nivel,
-        velocidad = (_random.nextDouble() * 3 + 1) * nivel;
+  })  : 
+        velocidad = (_random.nextDouble() * 3 + 1) * nivel
+      {
+        double generarVida = (_random.nextDouble() * 5 + 5) * nivel;
+        _vida = generarVida;
+        _maxVida = generarVida;
+      }
 
-  //setter
-  double get vida => _vida;
   //getter
+  double get maxVida => _maxVida;
+  double get vida => _vida;
+  //setter
   set vida(double nuevaVida) {
     if (nuevaVida < 0) {
       _vida = 0;
       return;
     }
+    if (nuevaVida > _maxVida) {
+      _vida = _maxVida;
+      return;
+    }
     _vida = nuevaVida;
   }
 
+
   void curarTotalmente() {
-    _vida = (5 + 5) * nivel.toDouble(); // Simplificado para asegurar vida llena
+    _vida = _maxVida; 
     estados.clear();
   }
 }

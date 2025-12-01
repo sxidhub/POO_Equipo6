@@ -198,13 +198,9 @@ class _BattleScreenState extends State<BattleScreen> {
     miPokemon = widget.jugador;
     oponentePokemon = widget.rival;
 
-    // IMPORTANTE: Curarlos antes de empezar, sino seguirán heridos de la batalla anterior
-    miPokemon.curarTotalmente();
-    oponentePokemon.curarTotalmente();
-
     // Establecemos la vida máxima actual
-    miVidaMax = miPokemon.vida;
-    oponenteVidaMax = oponentePokemon.vida;
+    miVidaMax = miPokemon.maxVida;
+    oponenteVidaMax = oponentePokemon.maxVida;
     
     combatLog.clear();
     agregarLog("¡Batalla entre ${miPokemon.nombre} y ${oponentePokemon.nombre}!");
@@ -218,6 +214,7 @@ class _BattleScreenState extends State<BattleScreen> {
 
     // --- FASE 1: MI ATAQUE ---
     setState(() {
+      print("1. Mi vida: ${miPokemon.vida}, Vida oponente: ${oponentePokemon.vida}");
       double danioFinal = TablaDanio.obtenerDanioTotal(miPokemon, oponentePokemon, ataqueSeleccionado);
       double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataqueSeleccionado.tipo, oponentePokemon.tipo);
 
@@ -246,6 +243,7 @@ class _BattleScreenState extends State<BattleScreen> {
     setState(() {
       if (oponentePokemon.ataques.isNotEmpty) {
         var random = Random();
+        print("2. Mi vida: ${miPokemon.vida}, Vida oponente: ${oponentePokemon.vida}");
         Ataque ataqueRival = oponentePokemon.ataques[random.nextInt(oponentePokemon.ataques.length)];
         double danioRival = TablaDanio.obtenerDanioTotal(oponentePokemon, miPokemon, ataqueRival);
         double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataqueRival.tipo, miPokemon.tipo);
