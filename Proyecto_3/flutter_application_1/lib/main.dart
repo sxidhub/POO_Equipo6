@@ -17,14 +17,13 @@ class PokemonApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Batalla Pokémon',
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.red),
-      // CAMBIO 1: La pantalla inicial ahora es la Selección
       home: const PantallaSeleccion(),
     );
   }
 }
 
 
-// NUEVA PANTALLA: SELECCIÓN DE POKÉMON
+// PANTALLA SELECCIÓN DE POKÉMON
 class PantallaSeleccion extends StatefulWidget {
   const PantallaSeleccion({super.key});
 
@@ -172,7 +171,7 @@ class _BattleScreenState extends State<BattleScreen> {
   late double miVidaMax;
   late double oponenteVidaMax;
 
-  Map<Consumibles, int> mochila = {}; //NUEVO
+  Map<Consumibles, int> mochila = {}; 
   bool mostrandoMochila = false;
 
   List<String> combatLog = [];
@@ -194,15 +193,20 @@ class _BattleScreenState extends State<BattleScreen> {
     //Generamos una mochila al azar para el jugador
     mochila = {
       pocion: Random().nextInt(3) + 1, // Entre 1 y 3 pociones
-      hiperPosion: Random().nextInt(2)+1, // Entre 0 y 1 hiper pociones //BORRAR DESPUES
+      superPosion: Random().nextInt(2) + 1, // Entre 1 y 2 super pociones
+      hiperPosion: Random().nextInt(2) + 1, // Entre 1 y 2 hiper pociones 
     };
 
     // Usamos los Pokémon que recibimos del constructor (widget.jugador y widget.rival)
     miPokemon = widget.jugador;
     oponentePokemon = widget.rival;
 
+
     miPokemon.curarTotalmente();
     oponentePokemon.curarTotalmente();
+
+    miPokemon.recalcularVelocidad();
+    oponentePokemon.recalcularVelocidad();
 
     // Establecemos la vida máxima actual
     miVidaMax = miPokemon.maxVida;
@@ -229,10 +233,10 @@ class _BattleScreenState extends State<BattleScreen> {
 
     if (jugadorEsMasRapido) {
       // --- CASO A: TÚ ERES MÁS RÁPIDO ---
-      // 1. Atacas tú
+      //  Atacas tú
       await ejecutarAtaque(atacante: miPokemon, defensor: oponentePokemon, ataque: ataqueJugador, esJugador: true);
       
-      // Si el rival sigue vivo, contraataca después de una pausa
+      // Respuesta rival si sigue vivo
       if (oponentePokemon.vida > 0) {
         await Future.delayed(const Duration(seconds: 2));
         if (!mounted) return; // Seguridad por si cierras la app
@@ -241,13 +245,13 @@ class _BattleScreenState extends State<BattleScreen> {
 
     } else {
       // --- CASO B: RIVAL ES MÁS RÁPIDO ---
-      // 1. Ataca el rival primero
+      // Ataca el rival primero
       agregarLog("¡${oponentePokemon.nombre} es más rápido!"); // Aviso visual
       await Future.delayed(const Duration(seconds: 1)); // Pequeña pausa para leer que es más rápido
       
       await ejecutarAtaque(atacante: oponentePokemon, defensor: miPokemon, ataque: ataqueRival, esJugador: false);
 
-      // Si sigues vivo, atacas tú
+      // Tu rrespuesta si sigues vivo
       if (miPokemon.vida > 0) {
         await Future.delayed(const Duration(seconds: 2));
         if (!mounted) return;
@@ -255,7 +259,7 @@ class _BattleScreenState extends State<BattleScreen> {
       }
     }
 
-    // 3. Verificar fin del juego y liberar botones
+    // Verificar fin del juego y liberar botones
     verificarFinTurno();
   }
 
@@ -263,20 +267,19 @@ class _BattleScreenState extends State<BattleScreen> {
   void usarObjeto(Consumibles item) async {
     setState(() { turnoEnProgreso = true; });
 
-    // 1. Aplicar efecto del objeto (Jugador)
+    // Aplicar efecto del objeto 
     if (item is ConsumiblesCuracion) {
       setState(() {
-        // Usamos el método modificado en consumibles.dart
         mochila = item.usarCuracion(miPokemon, mochila); 
         agregarLog("¡Usaste ${item.nombre}!");
         agregarLog("Recuperaste ${item.cantidadCuracion.toInt()} HP.");
       });
     }
 
-    // 2. Pausa dramática
+    // Pausa 
     await Future.delayed(const Duration(seconds: 2));
 
-    // 3. Turno del Rival (El rival ataca porque gastaste tu turno)
+    // Turno del Rival
     if (oponentePokemon.vida > 0) {
       var random = Random();
       Ataque ataqueRival = oponentePokemon.ataques[random.nextInt(oponentePokemon.ataques.length)];
@@ -300,7 +303,7 @@ class _BattleScreenState extends State<BattleScreen> {
     });
   }
 
-  // Calcula daño y actualiza la vida (Sirve para ambos)
+  // Calcula daño y actualiza la vida 
   Future<void> ejecutarAtaque({
     required Pokemon atacante, 
     required Pokemon defensor, 
@@ -309,14 +312,14 @@ class _BattleScreenState extends State<BattleScreen> {
   }) async {
     
     setState(() {
-      // Cálculos matemáticos usando tu clase TablaDanio
+      // Cálculos matemáticos usando clase TablaDanio
       double danio = TablaDanio.obtenerDanioTotal(atacante, defensor, ataque);
       double multiplicador = TablaDanio.obtenerMultiplicadorTotal(ataque.tipo, defensor.tipo);
 
       // Restar vida
       defensor.vida -= danio;
 
-      // Generar mensaje de eficacia
+      // Mensaje de eficacia
       String textoEficacia = "";
       if (multiplicador > 1.0) textoEficacia = "¡Es súper efectivo!";
       if (multiplicador < 1.0 && multiplicador > 0) textoEficacia = "No es muy eficaz...";
@@ -381,7 +384,7 @@ class _BattleScreenState extends State<BattleScreen> {
           ),
           child: Column(
             children: [
-              // --- ÁREA VISUAL (NO TOCADA, flex: 3) ---
+              // --- ÁREA VISUAL ---
               Expanded(
                 flex: 3,
                 child: Stack(
@@ -398,7 +401,7 @@ class _BattleScreenState extends State<BattleScreen> {
                 ),
               ),
 
-              // --- LOG (NO TOCADO, height: 120) ---
+              // --- LOG  ---
               Container(
                 width: double.infinity,
                 height: 120,
@@ -426,7 +429,7 @@ class _BattleScreenState extends State<BattleScreen> {
                 ),
               ),
 
-              // --- CONTROLES (MODIFICADO LIGERAMENTE PARA INCLUIR MOCHILA) ---
+              // --- CONTROLES ---
               Expanded(
                 flex: 2,
                 child: Container(
@@ -434,7 +437,7 @@ class _BattleScreenState extends State<BattleScreen> {
                   padding: const EdgeInsets.all(10),
                   child: Column(
                     children: [
-                      // 1. Título y Pestañas
+                      // Título y Pestañas
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -470,7 +473,7 @@ class _BattleScreenState extends State<BattleScreen> {
                       
                       const SizedBox(height: 10),
                       
-                      // 2. Texto informativo
+
                       Text(
                         turnoEnProgreso 
                           ? "Esperando al rival..." 
@@ -480,11 +483,10 @@ class _BattleScreenState extends State<BattleScreen> {
                       
                       const SizedBox(height: 5),
 
-                      // 3. El Grid Cambiante (Aquí ocurre la magia)
                       Expanded(
                         child: mostrandoMochila 
                           ? _buildMochilaGrid() // Muestra Mochila
-                          : _buildAtaquesGrid() // Muestra Ataques (Tu grid original)
+                          : _buildAtaquesGrid() // Muestra Ataques 
                       ),
                     ],
                   ),
@@ -497,7 +499,7 @@ class _BattleScreenState extends State<BattleScreen> {
     );
   }
 
-  // 1. Grid de Ataques (Tu lógica original encapsulada)
+  // Grid de Ataques 
   Widget _buildAtaquesGrid() {
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -520,7 +522,7 @@ class _BattleScreenState extends State<BattleScreen> {
     );
   }
 
-  // 2. Grid de Mochila (La nueva lógica)
+  // Grid de Mochila
   Widget _buildMochilaGrid() {
     if (mochila.isEmpty) {
       return const Center(

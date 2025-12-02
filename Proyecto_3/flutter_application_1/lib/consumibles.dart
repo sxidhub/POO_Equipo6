@@ -30,6 +30,7 @@ class ConsumiblesCuracion extends Consumibles {
   }
 }
 
+//No lo usamos al final (pero puede servir para futuros estados)
 class ConsumiblesEstado extends Consumibles {
   final String estadoAEliminar;
   ConsumiblesEstado(
@@ -38,6 +39,7 @@ class ConsumiblesEstado extends Consumibles {
 }
 
 
-final pocion = ConsumiblesCuracion("Poción", "Restaura 10 puntos de vida.","https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png" ,10.0);
-final hiperPosion = ConsumiblesCuracion("Hiper Poción", "Restaura 30 puntos de vida.","https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/hyper-potion.png" ,30.0);
+final pocion = ConsumiblesCuracion("Poción", "Restaura 20 puntos de vida.","https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png" ,20.0);
+final superPosion = ConsumiblesCuracion("Super Poción", "Restaura 60 puntos de vida.","https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/super-potion.png" ,60.0);
+final hiperPosion = ConsumiblesCuracion("Hiper Poción", "Restaura 120 puntos de vida.","https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/hyper-potion.png" ,120.0);
 

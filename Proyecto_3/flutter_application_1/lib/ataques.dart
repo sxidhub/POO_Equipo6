@@ -11,59 +11,58 @@ class Ataque {
   Ataque(this.nombre, this.tipo, this.danio);
 }
 
-// =========================================================
-// BANCO DE ATAQUES (2 por tipo: Uno Débil y Uno Fuerte)
 
+// BANCO DE ATAQUES (2 por tipo: Uno Débil y Uno Fuerte) ----------------------
 // --- NORMAL ---
 final tacleada = Ataque("Tacleada", Elementos.Normal, 1.0);       // Débil
 final golpeCuerpo = Ataque("Golpe Cuerpo", Elementos.Normal, 2.5); // Fuerte
 // --- FUEGO ---
-final ascuas = Ataque("Ascuas", Elementos.Fuego, 1.2);            // Débil (Nuevo)
+final ascuas = Ataque("Ascuas", Elementos.Fuego, 1.2);            // Débil 
 final lanzallamas = Ataque("Lanzallamas", Elementos.Fuego, 3.0);  // Fuerte
 // --- AGUA ---
-final pistolaAgua = Ataque("Pistola Agua", Elementos.Agua, 1.0);  // Débil (Nuevo)
+final pistolaAgua = Ataque("Pistola Agua", Elementos.Agua, 1.0);  // Débil 
 final hidroBomba = Ataque("Hidro Bomba", Elementos.Agua, 3.0);    // Fuerte
 // --- ELÉCTRICO ---
-final impactrueno = Ataque("Impactrueno", Elementos.Electrico, 1.2); // Débil (Nuevo)
+final impactrueno = Ataque("Impactrueno", Elementos.Electrico, 1.2); // Débil 
 final rayo = Ataque("Rayo", Elementos.Electrico, 2.8);               // Fuerte
 // --- HIERBA ---
-final latigoCepa = Ataque("Látigo Cepa", Elementos.Hierba, 1.0);  // Débil (Nuevo)
+final latigoCepa = Ataque("Látigo Cepa", Elementos.Hierba, 1.0);  // Débil )
 final hojaAfilada = Ataque("Hoja Afilada", Elementos.Hierba, 2.5); // Fuerte
 // --- HIELO ---
-final cantoHelado = Ataque("Canto Helado", Elementos.Hielo, 1.0); // Débil (Nuevo)
+final cantoHelado = Ataque("Canto Helado", Elementos.Hielo, 1.0); // Débil 
 final rayoHielo = Ataque("Rayo Hielo", Elementos.Hielo, 2.8);     // Fuerte
 // --- LUCHA ---
 final golpeKarate = Ataque("Golpe Karate", Elementos.Lucha, 1.5); // Débil
-final aBocajarro = Ataque("A Bocajarro", Elementos.Lucha, 3.0);   // Fuerte (Nuevo)
+final aBocajarro = Ataque("A Bocajarro", Elementos.Lucha, 3.0);   // Fuerte 
 // --- VENENO ---
-final picotazoVen = Ataque("Picotazo Ven", Elementos.Veneno, 0.8); // Débil (Nuevo)
+final picotazoVen = Ataque("Picotazo Ven", Elementos.Veneno, 0.8); // Débil 
 final bombaAcida = Ataque("Bomba Ácida", Elementos.Veneno, 2.5);   // Fuerte
 // --- TIERRA ---
-final disparoLodo = Ataque("Disparo Lodo", Elementos.Tierra, 1.0); // Débil (Nuevo)
+final disparoLodo = Ataque("Disparo Lodo", Elementos.Tierra, 1.0); // Débil
 final terremoto = Ataque("Terremoto", Elementos.Tierra, 3.0);      // Fuerte
 // --- VOLADOR ---
-final picotazo = Ataque("Picotazo", Elementos.Volador, 0.8);      // Débil (Nuevo)
+final picotazo = Ataque("Picotazo", Elementos.Volador, 0.8);      // Débil 
 final vendaval = Ataque("Vendaval", Elementos.Volador, 2.5);      // Fuerte
 // --- PSIQUICO ---
-final confusion = Ataque("Confusión", Elementos.Psiquico, 1.2);   // Débil (Nuevo)
+final confusion = Ataque("Confusión", Elementos.Psiquico, 1.2);   // Débil 
 final psiquico = Ataque("Psíquico", Elementos.Psiquico, 2.8);     // Fuerte
 // --- BICHO ---
-final corteFuria = Ataque("Corte Furia", Elementos.Bicho, 0.8);   // Débil (Nuevo)
+final corteFuria = Ataque("Corte Furia", Elementos.Bicho, 0.8);   // Débil 
 final tijeraX = Ataque("Tijera X", Elementos.Bicho, 2.5);         // Fuerte
 // --- ROCA ---
-final lanzarrocas = Ataque("Lanzarrocas", Elementos.Roca, 1.0);   // Débil (Nuevo)
+final lanzarrocas = Ataque("Lanzarrocas", Elementos.Roca, 1.0);   // Débil 
 final avalancha = Ataque("Avalancha", Elementos.Roca, 2.5);       // Fuerte
 // --- FANTASMA ---
-final lenguetazo = Ataque("Lengüetazo", Elementos.Fantasma, 0.8); // Débil (Nuevo)
+final lenguetazo = Ataque("Lengüetazo", Elementos.Fantasma, 0.8); // Débil 
 final bolaSombra = Ataque("Bola Sombra", Elementos.Fantasma, 2.5); // Fuerte
 // --- DRAGÓN ---
-final dragoaliento = Ataque("Dragoaliento", Elementos.Dragon, 1.5); // Débil (Nuevo)
+final dragoaliento = Ataque("Dragoaliento", Elementos.Dragon, 1.5); // Débil 
 final garraDragon = Ataque("Garra Dragón", Elementos.Dragon, 2.5);  // Fuerte
 // --- SINIESTRO ---
-final mordisco = Ataque("Mordisco", Elementos.Siniestro, 1.2);      // Débil (Nuevo)
+final mordisco = Ataque("Mordisco", Elementos.Siniestro, 1.2);      // Débil 
 final pulsoUmbrio = Ataque("Pulso Umbrío", Elementos.Siniestro, 2.5); // Fuerte
 // --- ACERO ---
-final garraMetal = Ataque("Garra Metal", Elementos.Acero, 1.2);     // Débil (Nuevo)
+final garraMetal = Ataque("Garra Metal", Elementos.Acero, 1.2);     // Débil 
 final focoResplandor = Ataque("Foco Resplandor", Elementos.Acero, 2.5); // Fuerte
 
 

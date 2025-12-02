@@ -6,7 +6,7 @@ import 'ataques.dart';
 /// =========================
 
 enum Elementos { Normal, Fuego, Agua, Electrico, Hierba, Hielo, Lucha, Veneno, Tierra, Volador, Psiquico, Bicho, Roca, Fantasma, Dragon, Siniestro, Acero}
-enum Estados { Paralizado, Dormido, Quemado, Congelado, Envenenado }
+enum Estados { Paralizado, Dormido, Quemado, Congelado, Envenenado } //No se usan (por ahora)
 
 class Pokemon {
   final String nombre;
@@ -58,8 +58,9 @@ class Pokemon {
   void curarTotalmente() {
       _vida = _maxVida; 
       estados.clear();
-      
-      // --- NUEVO: Recalcular velocidad aleatoria ---
+  }
+
+  void recalcularVelocidad() {
       velocidad = (_random.nextDouble() * 3 + 1) * nivel;
   }
 }
