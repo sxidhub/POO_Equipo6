@@ -15,11 +15,7 @@ class ConsumiblesCuracion extends Consumibles {
       : super(nombre, descripcion, sprite);
   
   Map<Consumibles, int> usarCuracion(Pokemon pokemon, Map<Consumibles, int> mochila) {
-    if (pokemon.maxVida < pokemon.vida + cantidadCuracion) {
-      pokemon.vida = pokemon.maxVida;
-    } else {
-      pokemon.vida += cantidadCuracion;
-    }
+    pokemon.vida += cantidadCuracion;
     //Restar lo usado
     mochila[this] = mochila[this]! - 1;
     //Borrrar si ya no hay
